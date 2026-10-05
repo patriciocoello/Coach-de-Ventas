@@ -158,7 +158,7 @@ export function Alert({ tone = "warn", children }: { tone?: "warn" | "bad" | "go
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={clsx("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <span className="leading-[0.85] text-[11px] font-bold uppercase">
+      <span className="text-[10px] font-bold uppercase leading-[1.05] tracking-wide">
         Mente
         <br />
         Fría

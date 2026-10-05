@@ -16,8 +16,20 @@ export function extractJSON(text: string): unknown {
 }
 
 // JSON Schema para pasar al modelo como guía de salida estructurada.
+// Se limpian palabras clave que los proveedores no siempre aceptan.
 export function toJSONSchema(schema: ZodType): Record<string, unknown> {
   const json = z.toJSONSchema(schema, { target: "draft-7", unrepresentable: "any" }) as Record<string, unknown>;
-  delete json.$schema;
-  return json;
+  return sanitize(json) as Record<string, unknown>;
+}
+
+function sanitize(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(sanitize);
+  if (!node || typeof node !== "object") return node;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+    if (k === "$schema" || k === "default") continue;
+    if ((k === "minimum" || k === "maximum") && typeof v === "number" && Math.abs(v) > 1e9) continue;
+    out[k] = sanitize(v);
+  }
+  return out;
 }

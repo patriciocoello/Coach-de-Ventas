@@ -29,7 +29,7 @@ export function ScoringEditor({ config }: { config: ScoringConfig }) {
                 <span className="flex-1 text-sm font-medium">{c.label}</span>
                 <span className="text-xs text-subtle">Pasos {c.manualSteps.join(", ")}</span>
                 <Input
-                  className="!h-8 w-20 text-right"
+                  className="!h-8 !w-20 text-right"
                   value={c.weight}
                   onClick={(e) => e.preventDefault()}
                   onChange={(e) => upCat(i, { weight: Number(e.target.value.replace(/\D/g, "")) || 0 })}

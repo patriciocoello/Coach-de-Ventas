@@ -11,7 +11,7 @@ export function SeedCard({ empty }: { empty: boolean }) {
       <CardHeader eyebrow="Contenido" title="Contenido inicial de Mente Fría" />
       <div className="space-y-4 p-5 text-sm">
         <p className="text-muted">
-          Carga el catálogo de septiembre 2026 (23 productos), el manual de llamada (pasos A–L), políticas, objeciones, 22 escenarios, 5 dificultades y los criterios de score.
+          Carga el catálogo de septiembre 2026 (tinas, motores, saunas y accesorios), el manual de llamada (pasos A–L), políticas, objeciones, 22 escenarios, 5 dificultades y los criterios de score.
           Sólo agrega lo que falta: nunca sobrescribe tus cambios.
         </p>
         {empty && <Alert tone="warn">Todavía no hay productos cargados.</Alert>}

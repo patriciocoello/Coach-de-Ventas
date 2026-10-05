@@ -59,9 +59,9 @@ function DifficultyForm({ d }: { d: DifficultyLevel }) {
           {PERSONALITY_KEYS.map((k) => (
             <div key={k} className="flex items-center gap-3 text-sm">
               <span className="flex-1">{PERSONALITY_LABELS[k]}</span>
-              <Input className="!h-8 w-16" value={f.param_ranges[k]?.[0] ?? 30} onChange={(e) => setRange(k, 0, e.target.value)} inputMode="numeric" />
+              <Input className="!h-8 !w-16" value={f.param_ranges[k]?.[0] ?? 30} onChange={(e) => setRange(k, 0, e.target.value)} inputMode="numeric" />
               <span className="text-subtle">a</span>
-              <Input className="!h-8 w-16" value={f.param_ranges[k]?.[1] ?? 70} onChange={(e) => setRange(k, 1, e.target.value)} inputMode="numeric" />
+              <Input className="!h-8 !w-16" value={f.param_ranges[k]?.[1] ?? 70} onChange={(e) => setRange(k, 1, e.target.value)} inputMode="numeric" />
             </div>
           ))}
         </div>

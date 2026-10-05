@@ -9,6 +9,21 @@ import type {
 } from "@/lib/types";
 import type { CoachOutput } from "./schema";
 
+export const MANUAL_STEP_NAMES: Record<string, string> = {
+  A: "Preparación",
+  B: "Apertura y quién decide",
+  C: "Situación actual",
+  D: "Entender el problema y profundizar",
+  E: "Resultado deseado",
+  F: "Calificación",
+  G: "Presentación de la solución",
+  H: "Confirmación",
+  I: "Precio",
+  J: "Manejo de objeciones",
+  K: "Cierre",
+  L: "WhatsApp de seguimiento",
+};
+
 export function ratingLabel(score: number): string {
   if (score >= 90) return "Venta excelente";
   if (score >= 80) return "Muy buena venta";
@@ -98,7 +113,10 @@ export function assembleEvaluation(args: {
     },
     improvedConversation: coach.improvedConversation.slice(0, 5),
     ruleViolations: violations,
-    manualSteps: coach.manualSteps,
+    manualSteps: coach.manualSteps.map((m) => {
+      const step = m.step.trim().toUpperCase().slice(0, 1);
+      return { ...m, step, name: MANUAL_STEP_NAMES[step] ?? m.name };
+    }),
     outcome: coach.outcome,
     outcomeExplanation: coach.outcomeExplanation,
     questionsBeforeRecommendation: coach.questionsBeforeRecommendation,

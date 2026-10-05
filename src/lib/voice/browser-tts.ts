@@ -125,7 +125,12 @@ export class BrowserVoice implements VoiceProvider {
     u.onend = done;
     u.onerror = done;
     if (wasIdle) this.onStart?.();
-    window.speechSynthesis.speak(u);
+    try {
+      window.speechSynthesis.speak(u);
+    } catch {
+      // Si la síntesis falla, sigue con la siguiente frase (el texto ya está en pantalla).
+      setTimeout(done, 0);
+    }
   }
 }
 
@@ -136,7 +141,7 @@ export class SentenceChunker {
   push(text: string): string[] {
     this.buf += text;
     const out: string[] = [];
-    const re = /[^.!?¡¿…]*[.!?…]+["'”)]?\s+/g;
+    const re = /[^.!?…]*[.!?…]+["'”)]?\s+/g;
     let consumed = 0;
     let m: RegExpExecArray | null;
     while ((m = re.exec(this.buf))) {

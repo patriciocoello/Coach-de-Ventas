@@ -73,7 +73,7 @@ export function UserManager({ users, meId }: { users: Profile[]; meId: string })
                   <div className="text-xs text-subtle">{u.email}</div>
                 </td>
                 <td className="px-5 py-3">
-                  <Select className="!h-8 w-36" value={u.role} disabled={u.id === meId} onChange={(e) => exec(() => updateUser({ id: u.id, role: e.target.value as UserRole }), "Rol actualizado.")}>
+                  <Select className="!h-8 !w-36" value={u.role} disabled={u.id === meId} onChange={(e) => exec(() => updateUser({ id: u.id, role: e.target.value as UserRole }), "Rol actualizado.")}>
                     {ROLES.map((r) => (
                       <option key={r.key} value={r.key}>
                         {r.label}

@@ -17,6 +17,8 @@ inciso. Tu trabajo es entregar dos cosas:
 
 Lee `references/ejemplos-resueltos.md` para ver exactamente cómo resolvió cada
 ejercicio, y `references/patrones.md` para las recetas por tipo de problema.
+Si sólo pide "las fórmulas del Ej. N", un repaso o un acordeón para el examen, responde
+directo con `references/acordeon-examen.md` (no hace falta generar Excel).
 Scripts en `scripts/` (dentro del directorio de este skill):
 - `leer_ejercicio.py` – extrae enunciado (cuadros de texto), imágenes y fórmulas de un .xlsx.
 - `montecarlo.py` – réplica de @RISK en numpy (distribuciones, NPV de Excel, Markov,

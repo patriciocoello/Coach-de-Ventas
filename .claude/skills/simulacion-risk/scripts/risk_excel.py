@@ -14,6 +14,9 @@ Ejemplo mínimo:
     lb.conclusion("B30", "a) El VPN promedio es ...")
     lb.guardar("Ejercicio27.xlsx")
 
+Estilos exportados: AZUL, AMARILLO, VERDE, ROJO, BORDE, NEGRITA, GRIS (úsalos en
+vez de copiar estilos entre celdas: `ws[x].font = ws[y].font` falla en openpyxl).
+
 Reglas técnicas que resuelve por ti:
 - Escribe las funciones de @RISK con el prefijo _xll. (así las guarda Excel cuando
   @RISK está cargado; sin el prefijo aparecen como #NAME?).
@@ -101,8 +104,15 @@ class LibroRisk:
         c.fill = AZUL
         c.font = Font(size=10)
 
+    def _celda(self, celda: str):
+        for rango in self.ws.merged_cells.ranges:
+            if celda in rango and celda != rango.start_cell.coordinate:
+                raise ValueError(f"{celda} está dentro del rango combinado {rango} (enunciado/conclusión). "
+                                 "Empieza el modelo debajo (fila 10+) o usa LibroRisk(..., rango_enunciado=...).")
+        return self.ws[celda]
+
     def v(self, celda: str, valor, negrita=False, relleno=None, formato=None):
-        c = self.ws[celda]
+        c = self._celda(celda)
         c.value = valor
         if negrita:
             c.font = NEGRITA
@@ -116,7 +126,7 @@ class LibroRisk:
           celda_texto: str | None = None):
         """Escribe una fórmula. Con mostrar_formula=True pone =FORMULATEXT(celda)
         una fila arriba (o en celda_texto), como en todos los ejercicios."""
-        c = self.ws[celda]
+        c = self._celda(celda)
         c.value = a_excel(formula)
         if formato:
             c.number_format = formato
@@ -125,7 +135,7 @@ class LibroRisk:
             c.font = NEGRITA
         if mostrar_formula or celda_texto:
             destino = celda_texto or desplazar(celda, filas=-1)
-            t = self.ws[destino]
+            t = self._celda(destino)
             t.value = f"=_xlfn.FORMULATEXT({celda})"
             t.font = GRIS
         return c
@@ -212,15 +222,27 @@ class LibroRisk:
         return desplazar(celda, filas=fila + 1)
 
     def tabla_simtable(self, esquina: str, valores: Sequence, encabezado_x: str,
-                       encabezado_y: str, resultados: Sequence[float] | None = None,
-                       paso: float | None = None, formato_y='"$"#,##0.00',
-                       salida: str | None = None):
+                       encabezado_y: str, resultados=None, paso: float | None = None,
+                       formato_y='"$"#,##0.00', salida: str | None = None,
+                       resaltar_mejor: str | None = "max"):
         """Tabla 'Posibles X | Promedio Y' que alimenta RiskSimtable (Ej. 7, 11, 24).
-        Si se da `paso`, la columna X se escribe como =celda_anterior+paso.
-        Si se da `salida` (celda RiskOutput), agrega columna '@RISK' con
-        =RiskMean(salida, k): la media de la simulación k, que se llena al simular."""
+        - `paso`: la columna X se escribe como =celda_anterior+paso.
+        - `resultados`: lista de medias, o dict {encabezado: lista} para varias
+          columnas (p. ej. {"Promedio (500 exp.)": [...], "Promedio (20,000 exp.)": [...]}).
+          La primera columna es la que decide la fila resaltada.
+        - `salida` (celda RiskOutput): agrega columna '(@RISK)' con =RiskMean(salida,k),
+          la media de la simulación k, que se llena sola al simular.
+        - `resaltar_mejor`: "max", "min" o None.
+        Devuelve el rango de X (para =RiskSimtable(rango))."""
+        if resultados is not None and not isinstance(resultados, dict):
+            resultados = {encabezado_y: list(resultados)}
+        cols = list(resultados.items()) if resultados else []
         self.v(esquina, encabezado_x, negrita=True, relleno=VERDE)
-        self.v(desplazar(esquina, cols=1), encabezado_y, negrita=True, relleno=VERDE)
+        for j, (enc, _) in enumerate(cols):
+            self.v(desplazar(esquina, cols=1 + j), enc, negrita=True, relleno=VERDE)
+        col_risk = 1 + len(cols)
+        if salida:
+            self.v(desplazar(esquina, cols=col_risk), f"{encabezado_y} (@RISK)", negrita=True, relleno=VERDE)
         primera = desplazar(esquina, filas=1)
         for i, x in enumerate(valores):
             ref = desplazar(primera, filas=i)
@@ -228,14 +250,25 @@ class LibroRisk:
                 self.f(ref, f"={desplazar(ref, filas=-1)}+{paso}")
             else:
                 self.v(ref, x)
-            if resultados is not None:
-                self.v(desplazar(ref, cols=1), resultados[i], formato=formato_y)
+            for j, (_, vals) in enumerate(cols):
+                self.v(desplazar(ref, cols=1 + j), vals[i], formato=formato_y)
             if salida:
-                self.f(desplazar(ref, cols=2), f"=RiskMean({salida},{i + 1})", formato=formato_y)
-        if salida:
-            self.v(desplazar(esquina, cols=2), f"{encabezado_y} (@RISK)", negrita=True, relleno=VERDE)
+                self.f(desplazar(ref, cols=col_risk), f"=RiskMean({salida},{i + 1})", formato=formato_y)
+        if cols and resaltar_mejor:
+            vals = cols[0][1]
+            k = (max if resaltar_mejor == "max" else min)(range(len(vals)), key=lambda i: vals[i])
+            for j in range(1 + len(cols)):
+                self.resaltar(desplazar(primera, filas=k, cols=j))
         ultima = desplazar(primera, filas=len(valores) - 1)
         return f"{primera}:{ultima}"
+
+    def fila_formulatext(self, fila_texto: int, fila_datos: int, columnas: Sequence[str]):
+        """Pone =FORMULATEXT(col{fila_datos}) en col{fila_texto} para cada columna,
+        p. ej. la fila 13 de Ej. 24 (FORMULATEXT -> años -> encabezados -> datos)."""
+        for col in columnas:
+            t = self.ws[f"{col}{fila_texto}"]
+            t.value = f"=_xlfn.FORMULATEXT({col}{fila_datos})"
+            t.font = GRIS
 
     def resaltar(self, celda: str, relleno=AMARILLO):
         self.ws[celda].fill = relleno

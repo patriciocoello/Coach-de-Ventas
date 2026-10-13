@@ -48,27 +48,35 @@ Escribe un script (en tu directorio temporal) que importe `montecarlo.py` y mode
 exactamente lo mismo que tendrá el Excel:
 - Usa el número de experimentos del enunciado para los números que reportas (así se
   parecen a lo que verá en @RISK).
-- Para decisiones (P3, P5) corre además con muchas iteraciones (≥ 20,000) para
-  confirmar el óptimo; si los mejores candidatos están dentro del 90% CI, dilo.
+- Para decisiones (P3, P5) corre además con muchas iteraciones (≥ 20,000). Reporta y
+  resalta el óptimo de N grande; si la tabla de N experimentos marca un vecino, dilo
+  como empate (diferencia menor al 90% CI). `simtable()` usa números aleatorios comunes
+  como @RISK; tu `modelo` recibe `(valor, iteraciones, rng)`.
+- Si a) elige un valor y b) pide estadísticas con él, b) es un bloque aparte con el
+  valor fijo (patrón P3b).
 - `resumen(x, "nombre")` da la tabla Statistics de @RISK (Min, Max, Mean, 90% CI,
   Mode, Median, Std Dev, Skewness, Kurtosis, Left/Right X al 5%/95%, percentiles).
+  La Mode de salidas continuas es aproximada (centro de un bin); no la enfatices.
 - Valida contra lo esperable (p. ej. media teórica, Markov analítico) cuando sea fácil.
 
 ### 4. Construir el Excel con `LibroRisk`
 Parte de `scripts/ejemplo_ej26_markov.py`. Convenciones del usuario que el Excel debe
 respetar (por qué: así lo entrega en clase y así lo reconoce su profesor):
-- **Enunciado** arriba (A1:P8), con el número "Ej. NN".
+- **Enunciado** arriba (A1:P8, celdas combinadas), con el número "Ej. NN". Empieza el
+  modelo en la fila 10 o más abajo (la celda de RiskSimtable puede ir en la fila 10-11).
 - **Tablas de datos** con encabezados claros en español (`Código`, `Probabilidad`,
   `Prob. Acumulada`, `Posibles …`, `Promedio …`), y columna `Total =SUM()` en matrices.
 - **Etiqueta de inciso** ("A)", "B)") a la izquierda de cada bloque; incisos uno debajo de
   otro en la misma hoja (Ej. 24 copia el modelo completo para el inciso b).
-- **FORMULATEXT encima** de cada fórmula clave (`lb.f(celda, formula, mostrar_formula=True)`)
+- **FORMULATEXT encima** de cada fórmula clave (`lb.f(celda, formula, mostrar_formula=True)`,
+  o una fila entera con `lb.fila_formulatext(fila_texto, fila_datos, ["D","E",...])`)
   para que se lea qué hace cada columna. En Ej. 26 lo puso debajo de las salidas.
 - Tabla de simulación con encabezados: `Experimento`/`Año`/`Semanas`, variables, resultado.
 - Salidas con `RiskOutput()` (o `RiskOutput("NPV")`) **sumado** a la fórmula:
   `=RiskOutput()+NPV(0.1,C14:G14)`.
 - Celda de decisión `=RiskSimtable(rango)` arriba de la hoja + tabla `Posibles X | Promedio Y`
-  (`lb.tabla_simtable(..., salida=celda_output)` añade la columna viva `RiskMean(salida,k)`).
+  (`lb.tabla_simtable(..., salida=celda_output)` añade la columna viva `RiskMean(salida,k)`
+  y resalta la fila óptima; acepta varias columnas de resultados en un dict).
 - Resultados pegados junto a la salida: `Mean` + valor (estilo Ej. 23/24) o la tabla
   Statistics completa cuando piden "estadísticas" (estilo Ej. 26) con
   `lb.estadisticas(celda, resumen, salida=celda_output)`.

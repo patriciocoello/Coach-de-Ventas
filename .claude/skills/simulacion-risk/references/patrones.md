@@ -4,7 +4,8 @@ Cada patrón trae: cuándo aplica, cómo se arma la hoja (estilo del usuario), l
 fórmula @RISK y el equivalente en Python con `montecarlo.py`. Un ejercicio nuevo
 suele combinar 2-3 patrones (p. ej. Ej. 24 = flujos encadenados + RiskSimtable).
 
-Índice: P1 Bernoulli/IF · P2 Discreta empírica · P3 RiskSimtable (decisión óptima) ·
+Índice: P1 Bernoulli/IF · P2 Discreta empírica · P3 RiskSimtable (decisión óptima;
+P3b inciso b con el óptimo fijo; P3c vendedor de periódicos) ·
 P4 Flujos encadenados y VPN · P5 Decisión/abandono por periodo · P6 Markov ·
 P7 Proceso acumulativo (capital) · Funciones @RISK · Ajustes de simulación
 
@@ -58,8 +59,33 @@ o `discreta_acumulada(u, vals, probs)`.
 - Rango de candidatos: el que diga el enunciado; si no dice, empieza grueso (pocos
   valores en un rango amplio), localiza el máximo con Python, y luego refina alrededor
   (Ej. 24 a usó paso 100 cerca de la demanda; b usó paso 35,000 en un rango amplio).
-Python: `simtable(valores, modelo, iteraciones)` + `mejor(...)`. Para decidir, corre
-también con muchas iteraciones (p. ej. 20,000) para ver el óptimo "real".
+Python: `simtable(valores, modelo, iteraciones)` + `mejor(...)`, con
+`modelo(valor, iteraciones, rng)`. `simtable` da a cada valor un rng con la misma
+semilla (números aleatorios comunes), igual que @RISK, que por defecto usa la misma
+semilla en cada simulación: así la comparación entre valores no se pierde en el ruido.
+
+**Qué óptimo reportar:** corre la tabla con las N iteraciones del enunciado y también
+con N grande (≥ 20,000). Reporta y resalta el óptimo de N grande (es el "verdadero").
+Si la tabla de N marca otro valor vecino, dilo: "con N experimentos la tabla puede
+marcar 97; 96 y 97 están empatados (diferencia < 90% CI)". Para tener las dos en el
+Excel: `lb.tabla_simtable(..., resultados={"Promedio (500 exp.)": r500, "Promedio (20,000 exp.)": r20k}, salida=...)`
+(pon primero la columna que decide el resaltado).
+
+### P3b. "a) elige el mejor valor, b) estadísticas con ese valor"
+Arma el inciso b como **bloque aparte** debajo (como Ej. 24 b), con el valor óptimo
+**fijo** en una celda (`=96` o referencia a la fila ganadora), sin RiskSimtable, y su
+propia salida `RiskOutput("…")`. Así sus estadísticas son las mismas en cualquiera de
+las k simulaciones. Recuerda: `RiskMean(salida)` sin índice lee la simulación 1;
+con varias simulaciones usa `RiskMean(salida, k)`.
+
+### P3c. Vendedor de periódicos / inventario de un periodo (Ej. 7 generalizado)
+`Vendidos =MIN(demanda,Q)` · `Sobrantes =MAX(Q-demanda,0)` · `Faltantes =MAX(demanda-Q,0)`
+· `Utilidad =precio*vendidos - costo*Q + remate*sobrantes - penalización*faltantes`.
+Comprobación teórica rápida (inclúyela como validación): razón crítica
+`cu/(cu+co)` con `cu = precio − costo + penalización` (costo de quedarse corto) y
+`co = costo − remate` (costo de que sobre); Q* ≈ percentil de la demanda en esa razón.
+Ojo: Ej. 7 usa su propia fórmula de utilidad (3·vendidos − 2.5·sobrantes − 3.5·faltantes):
+copia la del enunciado, no la genérica.
 
 ## P4. Flujos de efectivo encadenados y VPN
 *Ej. 23, Ej. 24.* Columnas por periodo; cada periodo depende del anterior.
@@ -74,7 +100,9 @@ VPN =RiskOutput("NPV")+NPV(0.16,-inversión,util_1,...,util_n)
 - `NPV` de Excel descuenta el **primer** argumento un periodo: si la inversión ocurre
   "al final del año 1" va como primer flujo (negativo), como en Ej. 24. Si ocurre en
   t=0 va fuera: `=-inversión+NPV(tasa, flujos)`.
-- Redondea demandas/unidades con `ROUNDUP(...,0)` cuando sean piezas (estilo Ej. 24).
+- Redondeo: si el enunciado dice "redondea a entero" usa `ROUND(...,0)`; si no dice nada
+  y son piezas, el usuario usó `ROUNDUP(...,0)` (Ej. 24). Usa la misma función en Python
+  (`np.round` / `np.ceil`) para que la réplica coincida.
 - Verifica restricciones que pida el enunciado (p. ej. "verificar que el costo nunca
   sea negativo": `=MAX(0, 60-0.1*($L$3-1000000)/10000)` o comenta para qué x se vuelve negativo).
 Python: `npv(tasa, [f1, f2, ...])` con arrays por iteración.
@@ -130,6 +158,9 @@ Salida en la última fila. Si hay que elegir el %, combínalo con P3.
 | Valor de decisión | `RiskSimtable(rango)` |
 | Marcar salida | `RiskOutput()` o `RiskOutput("nombre")` sumado a la fórmula |
 | Estadísticos (después de simular) | `RiskMean(c)`, `RiskMean(c, sim)`, `RiskStdDev(c)`, `RiskMode(c)`, `RiskMin`, `RiskMax`, `RiskPercentile(c, p)` |
+
+En el entorno normalmente sólo hay numpy (no scipy): escribe a mano las CDF/inversas
+que necesites para validar (p. ej. triangular).
 
 Equivalentes numpy: `rng.normal`, `rng.triangular(a, c, b)`, `rng.uniform`,
 `rng.integers(a, b+1)`, `discreta`, `rng.binomial`, `rng.poisson`, `rng.exponential(media)`.

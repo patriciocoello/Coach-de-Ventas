@@ -77,12 +77,22 @@ def markov(rng, P, estado_inicial: int, periodos: int, iteraciones: int):
 
 
 # ---------------------------------------------------------------- RiskSimtable
-def simtable(valores: Iterable, modelo: Callable[[object, int], np.ndarray],
-             iteraciones: int, estadistico=np.mean):
+def simtable(valores: Iterable, modelo: Callable, iteraciones: int,
+             estadistico=np.mean, semilla: int | None = 12345):
     """Corre una 'simulación' por cada valor (como RiskSimtable + N simulaciones)
     y devuelve lista de (valor, estadístico_de_la_salida).
-    `modelo(valor, iteraciones)` debe devolver el array de la salida."""
-    return [(v, float(estadistico(modelo(v, iteraciones)))) for v in valores]
+
+    `modelo(valor, iteraciones, rng)` debe devolver el array de la salida.
+    Con `semilla` (por defecto) cada valor recibe un rng con LA MISMA semilla:
+    números aleatorios comunes, igual que @RISK con "misma semilla en cada
+    simulación". Así la tabla compara los valores con la misma muestra de
+    demanda/ruido y es mucho menos ruidosa. semilla=None -> muestras independientes.
+    """
+    res = []
+    for v in valores:
+        rng = np.random.default_rng(semilla)
+        res.append((v, float(estadistico(modelo(v, iteraciones, rng)))))
+    return res
 
 
 def mejor(resultados, maximizar=True):
@@ -92,6 +102,8 @@ def mejor(resultados, maximizar=True):
 
 # ---------------------------------------------------------------- estadísticas
 def _moda(x: np.ndarray):
+    # Para salidas continuas es el centro del bin más alto del histograma; la
+    # Mode de @RISK se calcula distinto y puede diferir bastante: no la enfatices.
     vals, cnt = np.unique(x, return_counts=True)
     if len(vals) <= max(50, len(x) // 2):           # salida discreta (valores repetidos)
         return float(vals[np.argmax(cnt)])

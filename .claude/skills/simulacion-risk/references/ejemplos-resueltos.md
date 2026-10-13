@@ -1,10 +1,11 @@
 # Ejercicios resueltos por el usuario con @RISK (referencia de estilo)
 
-Estos son los ejercicios 21-28 tal como el usuario los resolvió en Excel + @RISK.
+Estos son los ejercicios 17-19 (con Análisis de datos, sin @RISK) y 21-28 (con @RISK) tal como el usuario los resolvió en Excel + @RISK.
 Son la "verdad" de cómo se espera que se vea una respuesta. Las fórmulas se
 muestran como aparecen en su Excel en español (separador `;`, decimal `.`).
 
 Contenido:
+0. Ej. 17, 18, 19 – SIN @RISK: Análisis de datos > Generación de números aleatorios
 1. Ej. 21/22 – Demostración @RISK con Ej. 2, 7 y 11 (Bernoulli, discreta, RiskSimtable)
 2. Ej. 23 – Flujos aleatorios encadenados, VPN y opción de abandono
 3. Ej. 24 – Capacidad óptima de planta (RiskSimtable + VPN, dos escenarios de demanda)
@@ -13,6 +14,60 @@ Contenido:
 6. Ej. 27 – Licitación con 3 competidores triangulares (RiskSimtable sobre mi oferta)
 7. Ej. 28 – Licitación con competidores uniformes (RiskUniform), 5 variantes a, b, c1, c2, d
 8. Observaciones / errores detectados en los originales
+
+---
+
+## 0. Ej. 17-19 – Análisis de datos (ToolPak), una fila por experimento
+
+Antes de @RISK el usuario resolvía con **Datos > Análisis de datos > Generación de números
+aleatorios**. Diferencias clave con @RISK:
+- **Cada fila es un experimento** (300 experimentos = 300 filas).
+- Las columnas aleatorias son **valores fijos** que pega la herramienta (no fórmulas).
+  Encima de la columna escribe cómo se generó, en texto: `data-dataan.rand.Gen.~B(5,0.15)`,
+  `data.data-ana.rand. ~B(5,0.45)`, `data-dataan.rand.Gen.~D($F$6:$G$10)` (B = binomial,
+  D = discreta con rango valor/probabilidad).
+- Las demás columnas son fórmulas normales (`IF`, sumas) y encima también va su texto.
+- Al final: `COUNTIF`, `AVERAGE`, porcentajes `=celda/N`, y una conclusión en cuadro de texto.
+
+### Ej. 17 – Efectividad de un plan de muestreo (300 experimentos)
+Lotes de 150; se revisan 5; si hay 2 o más defectuosos se rechaza. Lote bueno 0.7 / malo 0.3.
+P(pieza defectuosa) = 3%. Error tipo 1: acepto cuando no debí; tipo 2: rechazo cuando no debí.
+- `Experimento | Piezas defectuosas | Desición | Lote | (Error)`
+- Piezas defectuosas: Análisis de datos Binomial `~B(5,0.03)` (valores)
+- Decisión: `=IF(C15>=2;"Rechazo";"Acepto")`
+- Lote: `=IF(RAND()>0.7;"Malo";"Bueno")`
+- Error: `=IF(AND(D15="Acepto";E15="Malo");"Error 1";IF(AND(D15="Rechazo";E15="Bueno");"Error 2";""))`
+- Resumen: `Errores tipo 1 =COUNTIF(F15:F314;"Error 1")` → 90, `Errores tipo 2 =COUNTIF(...;"Error 2")` → 1,
+  `Total de errores` 91, `% de error` 30.3%, **`Efectividad del plan` 69.7%**.
+- Conclusión: el plan es poco efectivo; casi siempre se acepta (P(X≥2)=0.85%), así que los lotes
+  malos pasan como buenos; el error tipo 1 domina; habría que aumentar la muestra o rechazar con 1.
+- Nota: el texto de la respuesta dice "91 errores tipo 1" pero la tabla da 90 tipo 1 + 1 tipo 2.
+
+### Ej. 18 – Plan de muestreo más económico (500 experimentos)
+Lotes de 150; reemplazar una pieza defectuosa en ensamble cuesta $100; inspección $120 fijo +
+$20 por pieza. Defectuosos en el lote: 5, 16, 25, 46, 54 con prob. 0.2 c/u (tabla en F6:G10).
+P(pieza defectuosa en la muestra) = 15%. Planes a) n=5 rechazo ≥1, b) ≥2, c) ≥3, d) n=10 ≥5,
+e) n=15 ≥7, f) 100%, g) propuesta propia.
+- Un bloque por plan, uno debajo de otro (A y B lado a lado, etc.), cada uno con:
+  `Experimento | Piezas defectuosas en muestra | Decisión | Piezas defectuosas en lote |
+  Costo de remplazar adentro del proceso | Costo de inspección | Costo Total`
+- Muestra: Binomial `~B(n,0.15)` (valores) · Decisión `=IF(C19>=k;"Rehazo";"Acepto")` ·
+  Lote: Discreta `~D($F$6:$G$10)` (valores) · Reemplazo `=IF(D19="Acepto";E19*100;0)` ·
+  Inspección `=120+n*(20)` · Total `=F19+G19` · `Promedio =AVERAGE(H19:H518)`
+- f) 100%: reemplazo 0, inspección `=120+150*(20)` = $3,120.
+- Resultados: A $1,491 · B $2,645 · C $3,016 · D $3,151 · E $3,261 · F $3,120 ·
+  **G (propuesta n=20, rechazo ≥1) $593**.
+- Conclusión: domina el costo de reemplazo (~29 defectuosos × $100 por lote aceptado), así que
+  conviene el plan más estricto; n≈19-20 con rechazo ≥1 es el óptimo (más allá, la inspección
+  cuesta más de lo que ahorra). (Teórico: P(aceptar) con n=20 es 0.85^20 ≈ 3.9%.)
+- Modelo del usuario: un lote rechazado sólo cuesta la inspección.
+
+### Ej. 19 – Penales (200 experimentos)
+Eficiencia 0.45; récord 4 de 5; ¿probabilidad de meter los 5?
+- `Experimento | Goles anotados` con Binomial `~B(5,0.45)` (200 valores).
+- `5 penales =COUNTIF(C10:C209;5)` → 1 · `%Prob de exito =C211/200` → 0.50%.
+- Conclusión: probabilidad muy baja, **NO conviene apostar**. (Teórico 0.45^5 = 1.8%; con
+  200 experimentos salen típicamente entre 1 y 7 rondas perfectas; la conclusión no cambia.)
 
 ---
 

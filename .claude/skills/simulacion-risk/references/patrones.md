@@ -11,8 +11,28 @@ P7 Proceso acumulativo (capital) · P8 Licitaciones · Funciones @RISK · Ajuste
 
 ---
 
+## P0. Sin @RISK: Análisis de datos > Generación de números aleatorios (Ej. 17-19)
+Cuando el ejercicio es de la parte anterior a @RISK (Ej. ≤ 20) o el usuario dice "análisis
+de datos", **cada fila es un experimento** y la columna aleatoria son valores pegados por
+la herramienta. Cuadro de diálogo (Datos > Análisis de datos > Generación de números aleatorios):
+| Distribución | Parámetros | Texto que el usuario pone encima |
+|---|---|---|
+| Binomial | Valor p, Número de ensayos | `~B(5,0.15)` |
+| Discreta | Rango de entrada de valores y probabilidades (2 columnas) | `~D($F$6:$G$10)` |
+| Poisson | Lambda | `~P(λ)` |
+| Uniforme | Entre a y b | `~U(a,b)` |
+| Normal | Media, Desviación estándar | `~N(m,s)` |
+| Bernoulli | Valor p | `~Be(p)` |
+Número de variables = 1, Cantidad de números aleatorios = N experimentos, Rango de salida =
+primera celda de la columna. Luego fórmulas `IF` por fila y al final `COUNTIF`, `AVERAGE`,
+`=conteo/N`. En el Excel generado, escribe esos valores con numpy (`rng.binomial`,
+`discreta`, `rng.poisson`…) como valores fijos y deja el texto `data-dataan.rand.Gen.~B(...)`
+encima; también explica cómo regenerarlos con la herramienta. Plantilla:
+`scripts/ejemplo_toolpak_muestreo.py`. Si quieren fórmulas vivas sin ToolPak:
+`=BINOM.INV(n;p;RAND())`, `=NORM.INV(RAND();m;s)`.
+
 ## La idea central
-La hoja modela **un solo experimento**. @RISK la recalcula N veces (iteraciones =
+(Con @RISK.) La hoja modela **un solo experimento**. @RISK la recalcula N veces (iteraciones =
 "experimentos" del enunciado) y guarda cada celda marcada con `RiskOutput()`.
 - Filas de la tabla = periodos (años, semanas, tareas) **dentro de un experimento**.
 - No hagas 500 filas para 500 experimentos: eso lo hace @RISK. (Excepción histórica:

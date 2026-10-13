@@ -1,12 +1,12 @@
 ---
 name: simulacion-risk
-description: Resuelve ejercicios de simulación Monte Carlo con @RISK (Palisade) en Excel con el mismo estilo sencillo que los ejercicios 21-28 que el usuario ya resolvió (cadenas de Markov, VPN con flujos aleatorios, opción de abandono, capacidad de planta, licitaciones, RiskSimtable para elegir capacidad/oferta/cantidad/% óptimo, distribuciones uniforme, discreta, normal, triangular, Poisson). Genera el .xlsx con las fórmulas @RISK listas para correr (RiskUniform, RiskNormal, RiskDiscrete, RiskTriang, RiskSimtable, RiskOutput, FORMULATEXT), calcula las respuestas con una réplica en Python y responde cada inciso a), b), c) con sus estadísticas y conclusión. Úsalo siempre que el usuario comparta o pegue un ejercicio de simulación, "experimentos", "iteraciones", probabilidades de transición, valor presente neto aleatorio, licitaciones u ofertas de competidores, o mencione @RISK, Risk, Palisade, Monte Carlo o "Ej. NN" de la clase de simulación, aunque no pida explícitamente un Excel.
+description: Resuelve ejercicios de simulación Monte Carlo con @RISK (Palisade) en Excel con el mismo estilo sencillo que los ejercicios 17-28 que el usuario ya resolvió, con @RISK o con Análisis de datos > Generación de números aleatorios (control de calidad y planes de muestreo, penales/binomial, cadenas de Markov, VPN con flujos aleatorios, opción de abandono, capacidad de planta, licitaciones, RiskSimtable para elegir capacidad/oferta/cantidad/% óptimo, distribuciones uniforme, discreta, normal, triangular, Poisson). Genera el .xlsx con las fórmulas @RISK listas para correr (RiskUniform, RiskNormal, RiskDiscrete, RiskTriang, RiskSimtable, RiskOutput, FORMULATEXT), calcula las respuestas con una réplica en Python y responde cada inciso a), b), c) con sus estadísticas y conclusión. Úsalo siempre que el usuario comparta o pegue un ejercicio de simulación, "experimentos", "iteraciones", probabilidades de transición, valor presente neto aleatorio, licitaciones u ofertas de competidores, o mencione @RISK, Risk, Palisade, Monte Carlo o "Ej. NN" de la clase de simulación, aunque no pida explícitamente un Excel.
 ---
 
 # Simulación con @RISK al estilo del usuario
 
 El usuario resuelve ejercicios de un curso de simulación en Excel con el complemento
-@RISK. Ya resolvió los Ej. 21-28 y quiere que los nuevos se resuelvan **igual**: misma
+@RISK. Ya resolvió los Ej. 17-19 (con Análisis de datos de Excel) y 21-28 (con @RISK) y quiere que los nuevos se resuelvan **igual**: misma
 estructura de hoja, mismas fórmulas, mismos tipos de salida y conclusiones cortas por
 inciso. Tu trabajo es entregar dos cosas:
 
@@ -24,6 +24,7 @@ Scripts en `scripts/` (dentro del directorio de este skill):
 - `risk_excel.py` – clase `LibroRisk` que escribe el Excel en el estilo del usuario.
 - `ejemplo_ej26_markov.py` – plantilla completa (Ej. 26, Markov). Cópiala.
 - `ejemplo_licitacion.py` – plantilla de licitación (Ej. 27/28) en el formato exacto del usuario.
+- `ejemplo_toolpak_muestreo.py` – plantilla SIN @RISK (Análisis de datos, Ej. 17-19), control de calidad.
 
 ## Flujo de trabajo
 
@@ -37,6 +38,14 @@ Scripts en `scripts/` (dentro del directorio de este skill):
 - Revisa los datos: filas de matrices de transición que no suman 1, rangos raros,
   órdenes de parámetros (Triangular = mín, más probable, máx). Si algo es ambiguo y
   cambia la respuesta, dilo y elige la interpretación más razonable explicándola.
+
+### 1b. ¿@RISK o Análisis de datos?
+- Ej. 21 en adelante, o si mencionan @RISK → **@RISK** (la hoja = un experimento; N = Iterations).
+- Ej. 20 o menor, o si dicen "análisis de datos" / "generación de números aleatorios" →
+  **Análisis de datos de Excel, sin @RISK** (patrón P0: una fila por experimento, valores
+  aleatorios fijos, `COUNTIF`/`AVERAGE` al final; ejemplos Ej. 17, 18, 19). Plantilla
+  `scripts/ejemplo_toolpak_muestreo.py`.
+- Si no está claro, usa @RISK y menciona en una línea cómo sería con Análisis de datos.
 
 ### 2. Usar la función @RISK de cada distribución que nombre el enunciado
 El usuario espera ver la función de @RISK, no una fórmula equivalente con RAND:

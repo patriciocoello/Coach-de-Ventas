@@ -148,8 +148,8 @@ Salida en la última fila. Si hay que elegir el %, combínalo con P3.
 |---|---|
 | Normal(media, desv) | `RiskNormal(m, s)` |
 | Triangular(min, más probable, max) | `RiskTriang(a, c, b)` ← ojo al orden |
-| Uniforme continua | `RiskUniform(min, max)` |
-| Uniforme entera | `RiskIntUniform(min, max)` |
+| Uniforme continua ("uniforme entre a y b") | `RiskUniform(min, max)` ← nunca `a+(b-a)*RAND()` |
+| Uniforme entera | `RiskIntUniform(min, max)` ← nunca `RANDBETWEEN` |
 | Discreta | `RiskDiscrete(valores, probs)` |
 | Binomial | `RiskBinomial(n, p)` |
 | Poisson | `RiskPoisson(lambda)` |

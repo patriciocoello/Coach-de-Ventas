@@ -37,13 +37,30 @@ Scripts en `scripts/` (dentro del directorio de este skill):
   órdenes de parámetros (Triangular = mín, más probable, máx). Si algo es ambiguo y
   cambia la respuesta, dilo y elige la interpretación más razonable explicándola.
 
-### 2. Elegir el patrón (ver `references/patrones.md`)
+### 2. Usar la función @RISK de cada distribución que nombre el enunciado
+El usuario espera ver la función de @RISK, no una fórmula equivalente con RAND:
+| El enunciado dice… | Usa | No uses |
+|---|---|---|
+| "uniforme entre a y b" | `RiskUniform(a,b)` | `a+(b-a)*RAND()`, `RANDBETWEEN` |
+| "uniforme entera" / "número entero entre a y b" / piezas, días, clientes | `RiskIntUniform(a,b)` (o `ROUND(RiskUniform(a,b),0)` si dice "redondea") | `RANDBETWEEN(a,b)` |
+| "normal con media m y desv s" | `RiskNormal(m,s)` | `NORM.INV(RAND(),m,s)` |
+| "triangular min, más probable, max" | `RiskTriang(min,mp,max)` | fórmula inversa a mano |
+| "exponencial con media m" | `RiskExpon(m)` | `-m*LN(RAND())` |
+| "Poisson con media λ" | `RiskPoisson(λ)` | tablas acumuladas a mano |
+| tabla de valores y probabilidades | `RiskDiscrete(valores,probs)` o el IF anidado con RAND() y acumulada (estilo Ej. 7) | — |
+`RAND()` sólo para eventos sí/no (Ej. 2) o cuando el ejercicio pide explícitamente la
+tabla de probabilidad acumulada. Antes de entregar, repasa el enunciado: cada
+distribución nombrada debe aparecer con su función Risk en el Excel y en las fórmulas
+que muestras en el chat. En Python: `rng.uniform(a,b)`, `rng.integers(a,b+1)`,
+`rng.normal`, `rng.triangular(min,mp,max)`, `rng.exponential(m)`, `rng.poisson(λ)`.
+
+### 3. Elegir el patrón (ver `references/patrones.md`)
 P1 Bernoulli/IF · P2 discreta con acumulada · P3 RiskSimtable para elegir el mejor
 valor · P4 flujos encadenados + VPN · P5 decisión/abandono por periodo · P6 Markov
 (con/sin absorbente) · P7 capital acumulado. Lo central: **la hoja es un solo
 experimento; @RISK la repite N veces**. Filas = periodos dentro del experimento.
 
-### 3. Réplica en Python → respuestas
+### 4. Réplica en Python → respuestas
 Escribe un script (en tu directorio temporal) que importe `montecarlo.py` y modele
 exactamente lo mismo que tendrá el Excel:
 - Usa el número de experimentos del enunciado para los números que reportas (así se
@@ -59,7 +76,7 @@ exactamente lo mismo que tendrá el Excel:
   La Mode de salidas continuas es aproximada (centro de un bin); no la enfatices.
 - Valida contra lo esperable (p. ej. media teórica, Markov analítico) cuando sea fácil.
 
-### 4. Construir el Excel con `LibroRisk`
+### 5. Construir el Excel con `LibroRisk`
 Parte de `scripts/ejemplo_ej26_markov.py`. Convenciones del usuario que el Excel debe
 respetar (por qué: así lo entrega en clase y así lo reconoce su profesor):
 - **Enunciado** arriba (A1:P8, celdas combinadas), con el número "Ej. NN". Empieza el
@@ -92,7 +109,7 @@ guarda. Guarda el archivo en el directorio de trabajo del usuario (o donde pida)
 compártelo. Si hay LibreOffice, puedes recalcular para revisar que las fórmulas no-Risk
 den valores coherentes (las Risk saldrán `#NAME?` sin @RISK, es normal).
 
-### 5. Responder en el chat
+### 6. Responder en el chat
 Usa este formato (en español, tono directo como el del usuario):
 
 ```
@@ -120,6 +137,8 @@ estimados en Python quedan al lado para comparar.
   arriba de la respuesta.
 
 ## Errores a evitar (vistos en los originales)
+- Sustituir una distribución nombrada por RAND()/RANDBETWEEN/NORM.INV: usa siempre la
+  función Risk correspondiente (tabla del paso 2). Pasó con "uniforme" → debe ser RiskUniform.
 - Elegir un óptimo distinto al máximo de la propia tabla (Ej. 24 b: el texto decía
   1,480,000 y la tabla daba 1,340,000). Toma siempre el máximo de la tabla y menciona empates.
 - Comparar valores en momentos distintos del tiempo en decisiones de abandono (Ej. 23 b).

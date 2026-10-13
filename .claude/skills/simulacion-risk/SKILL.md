@@ -1,12 +1,12 @@
 ---
 name: simulacion-risk
-description: Resuelve ejercicios de simulación Monte Carlo con @RISK (Palisade) en Excel con el mismo estilo que los ejercicios 21-26 que el usuario ya resolvió (cadenas de Markov, VPN con flujos aleatorios, opción de abandono, RiskSimtable para elegir capacidad/cantidad/% óptimo, distribuciones discretas, normal, triangular). Genera el .xlsx con las fórmulas @RISK listas para correr (RiskNormal, RiskDiscrete, RiskTriang, RiskSimtable, RiskOutput, FORMULATEXT), calcula las respuestas con una réplica en Python y responde cada inciso a), b), c) con sus estadísticas y conclusión. Úsalo siempre que el usuario comparta o pegue un ejercicio de simulación, "experimentos", "iteraciones", probabilidades de transición, valor presente neto aleatorio, o mencione @RISK, Risk, Palisade, Monte Carlo o "Ej. NN" de la clase de simulación, aunque no pida explícitamente un Excel.
+description: Resuelve ejercicios de simulación Monte Carlo con @RISK (Palisade) en Excel con el mismo estilo sencillo que los ejercicios 21-28 que el usuario ya resolvió (cadenas de Markov, VPN con flujos aleatorios, opción de abandono, capacidad de planta, licitaciones, RiskSimtable para elegir capacidad/oferta/cantidad/% óptimo, distribuciones uniforme, discreta, normal, triangular, Poisson). Genera el .xlsx con las fórmulas @RISK listas para correr (RiskUniform, RiskNormal, RiskDiscrete, RiskTriang, RiskSimtable, RiskOutput, FORMULATEXT), calcula las respuestas con una réplica en Python y responde cada inciso a), b), c) con sus estadísticas y conclusión. Úsalo siempre que el usuario comparta o pegue un ejercicio de simulación, "experimentos", "iteraciones", probabilidades de transición, valor presente neto aleatorio, licitaciones u ofertas de competidores, o mencione @RISK, Risk, Palisade, Monte Carlo o "Ej. NN" de la clase de simulación, aunque no pida explícitamente un Excel.
 ---
 
 # Simulación con @RISK al estilo del usuario
 
 El usuario resuelve ejercicios de un curso de simulación en Excel con el complemento
-@RISK. Ya resolvió los Ej. 21-26 y quiere que los nuevos se resuelvan **igual**: misma
+@RISK. Ya resolvió los Ej. 21-28 y quiere que los nuevos se resuelvan **igual**: misma
 estructura de hoja, mismas fórmulas, mismos tipos de salida y conclusiones cortas por
 inciso. Tu trabajo es entregar dos cosas:
 
@@ -22,7 +22,8 @@ Scripts en `scripts/` (dentro del directorio de este skill):
 - `montecarlo.py` – réplica de @RISK en numpy (distribuciones, NPV de Excel, Markov,
   RiskSimtable, tabla de estadísticas de @RISK).
 - `risk_excel.py` – clase `LibroRisk` que escribe el Excel en el estilo del usuario.
-- `ejemplo_ej26_markov.py` – plantilla completa (Ej. 26 resuelto de punta a punta). Cópiala.
+- `ejemplo_ej26_markov.py` – plantilla completa (Ej. 26, Markov). Cópiala.
+- `ejemplo_licitacion.py` – plantilla de licitación (Ej. 27/28) en el formato exacto del usuario.
 
 ## Flujo de trabajo
 
@@ -77,8 +78,18 @@ exactamente lo mismo que tendrá el Excel:
 - Valida contra lo esperable (p. ej. media teórica, Markov analítico) cuando sea fácil.
 
 ### 5. Construir el Excel con `LibroRisk`
-Parte de `scripts/ejemplo_ej26_markov.py`. Convenciones del usuario que el Excel debe
-respetar (por qué: así lo entrega en clase y así lo reconoce su profesor):
+Parte de la plantilla más parecida (`ejemplo_licitacion.py` o `ejemplo_ej26_markov.py`).
+
+**Formato SENCILLO, nada "profesional".** El usuario lo pidió explícitamente: sus Excel
+no tienen colores, ni negritas, ni bordes, ni títulos decorados. Lo único resaltado es
+la fila ganadora de la tabla de Simtable en amarillo con la palabra `IDEAL` al lado, y
+el dinero va en formato contable `$` (constante `DINERO`). `LibroRisk` ya escribe así;
+no agregues estilos. Tampoco agregues tablas extra que nadie pidió (la tabla Statistics
+completa sólo cuando el enunciado pide "estadísticas"). Conclusiones de una línea, en el
+tono del usuario ("Entre mas competidores debo bajar mi oferta, y ganaré menos").
+
+Convenciones del usuario que el Excel debe respetar (por qué: así lo entrega en clase y
+así lo reconoce su profesor):
 - **Enunciado** arriba (A1:P8, celdas combinadas), con el número "Ej. NN". Empieza el
   modelo en la fila 10 o más abajo (la celda de RiskSimtable puede ir en la fila 10-11).
 - **Tablas de datos** con encabezados claros en español (`Código`, `Probabilidad`,
@@ -110,7 +121,7 @@ compártelo. Si hay LibreOffice, puedes recalcular para revisar que las fórmula
 den valores coherentes (las Risk saldrán `#NAME?` sin @RISK, es normal).
 
 ### 6. Responder en el chat
-Usa este formato (en español, tono directo como el del usuario):
+Usa este formato (en español, corto y directo como el usuario, sin adornos):
 
 ```
 ## Ej. NN – <tema>
@@ -124,7 +135,7 @@ Usa este formato (en español, tono directo como el del usuario):
 **b)** …
 **c)** <tabla de estadísticas si las piden>
 
-**Conclusión:** <1-2 frases como las de sus Excel>
+**Conclusión:** <1 frase corta e informal como las de sus Excel>
 
 **Para correrlo en @RISK:** abre EjercicioNN.xlsx con @RISK, verifica Iterations = N y
 Simulations = k, Start Simulation; las columnas "@RISK" se llenan solas y los valores

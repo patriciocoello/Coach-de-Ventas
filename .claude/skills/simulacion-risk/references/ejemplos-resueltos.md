@@ -1,6 +1,6 @@
 # Ejercicios resueltos por el usuario con @RISK (referencia de estilo)
 
-Estos son los ejercicios 21-26 tal como el usuario los resolvió en Excel + @RISK.
+Estos son los ejercicios 21-28 tal como el usuario los resolvió en Excel + @RISK.
 Son la "verdad" de cómo se espera que se vea una respuesta. Las fórmulas se
 muestran como aparecen en su Excel en español (separador `;`, decimal `.`).
 
@@ -10,7 +10,9 @@ Contenido:
 3. Ej. 24 – Capacidad óptima de planta (RiskSimtable + VPN, dos escenarios de demanda)
 4. Ej. 25 – Cadena de Markov (popularidad Tesla), moda del nivel final
 5. Ej. 26 – Cadena de Markov con estado absorbente (jugador de beisbol), estadísticas completas
-6. Observaciones / errores detectados en los originales
+6. Ej. 27 – Licitación con 3 competidores triangulares (RiskSimtable sobre mi oferta)
+7. Ej. 28 – Licitación con competidores uniformes (RiskUniform), 5 variantes a, b, c1, c2, d
+8. Observaciones / errores detectados en los originales
 
 ---
 
@@ -166,7 +168,50 @@ Ajustes: 1000 iteraciones.
 
 ---
 
-## 6. Observaciones / errores detectados (para no repetirlos)
+## 6. Ej. 27 – Licitación, 3 competidores (1000 experimentos, 16 simulaciones)
+
+**Enunciado:** el proyecto te cuesta $50,000; 3 competidores ofrecen un precio aleatorio
+con mínimo $55,000, más probable $80,000 y máximo $150,000. ¿En cuánto ofrecer para
+maximizar la ganancia esperada?
+
+**Hoja (una sola fila de experimento, formato sencillo, sin colores ni negritas):**
+- Fila 10: `=FORMULATEXT(...)` de cada columna. Fila 11 encabezados:
+  `Experimentos | Costo | Mi oferta | Oferta competidor 1 | … 2 | … 3 | Mi ganancia`
+- Fila 12: `1 | 50000 | =RiskSimtable(C15:C30) | =RiskTriang(55000;80000;150000) (x3) |
+  =RiskOutput()+IF(MIN(D12:G12)=D12;D12-C12;0)`
+- Tabla abajo: `Posibles Ofertas | Ganacia promedio`, `C15 = 55000`, `C16 =C15+3000` … hasta 100,000.
+- Resultado: máximo en **73,000 → $14,950** (70,000 da $14,940: empate). La fila ganadora
+  en amarillo y la palabra **"IDEAL"** al lado. Formato contable en $.
+
+## 7. Ej. 28 – Licitación con competidores uniformes (500 experimentos, 15 simulaciones)
+
+**Enunciado:** tu costo $100,000; 4 competidores con oferta uniforme entre 1 y 3 veces tu
+costo (independientes). a) Oferta que maximiza la ganancia esperada. b) Si se duplican
+los competidores. c) Misma media pero menos variabilidad: c1) U(150k, 250k), c2) U(180k, 220k).
+d) Cada competidor tiene 40% de probabilidad de no licitar.
+
+**Hoja:** cinco bloques uno debajo de otro, cada uno con su etiqueta (`a)`, `b)`, `C1)`,
+`C2)`, `D)`) y la misma estructura que Ej. 27:
+- `Experimento | Mi costo | Mi oferta | Oferta competidor 1..n | Mi Ganancia`
+- `Mi oferta =RiskSimtable(C19:C33)` (cada bloque apunta a su propia tabla),
+  ofertas `=110000`, `=C19+10000` … 250,000.
+- a) competidores `=RiskUniform(100000;300000)`, salida `=RiskOutput()+IF(MIN(D16:H16)=D16;D16-C16;0)`
+- b) 8 competidores, salida `=RiskOutput("Mi GananciaB")+IF(MIN(D37:L37)=D37;D37-C37;0)`
+- c1) `=RiskUniform(150000;250000)`, c2) `=RiskUniform(180000;220000)`, salidas con nombre
+  `RiskOutput("Mi GananciaC1")`, `RiskOutput("Mi GananciaC2")`
+- d) `=IF(RAND()<0.4;RiskUniform(100000;300000);"no Licita")` y
+  `=RiskOutput("no Licita / Mi Ganancia D")+IF(MIN(D100;E100;F100;G100;H100)=D100;D100-C100;0)`
+  (MIN ignora el texto "no Licita"; si nadie licita, gano yo).
+- Resultados (fila IDEAL en amarillo): a) **140,000 → $16,320**; b) **120,000 → $8,400**;
+  c1) **150,000 → $50,000**; c2) **180,000 → $80,000**; d) **200,000 → $42,200**.
+- Conclusiones (cuadros de texto, informales, una línea, sin acentos a veces):
+  - b) *"Entre mas competidores Debo bajar mi oferta, y ganaré menos"*
+  - c) *"Si la distribución esta mas cerrada puedo ofertar mas y ganar mas"*
+  - d) *"Menos participantes puedes ofertar mas alto y ganar mas"*
+
+---
+
+## 8. Observaciones / errores detectados (para no repetirlos)
 
 - **Ej. 24 b:** la conclusión dice 1,480,000 pero la tabla del propio archivo da el
   máximo en 1,340,000 ($82,753,814 vs $82,753,631 en 1,480,000). La réplica en Python
@@ -180,4 +225,12 @@ Ajustes: 1000 iteraciones.
   (`NPV(0.1;0;0;0;F14;G14)<I7`). Comparar siempre en el mismo momento del tiempo.
 - **Ej. 7:** 38 vs 39 periódicos están casi empatados; con 200 iteraciones el ganador
   puede cambiar entre corridas. Mencionarlo cuando la diferencia sea menor al 90% CI.
+- **Ej. 28 d:** el enunciado dice 40% de probabilidad de **no** licitar, pero la fórmula
+  `IF(RAND()<0.4;RiskUniform(...);"no Licita")` hace que cada uno **licite** sólo el 40%.
+  Lo correcto es `IF(RAND()<0.6;RiskUniform(...);"no Licita")` (o `RAND()>=0.4`). Con eso
+  el óptimo baja a ~170,000 (≈$27,400) en vez de 200,000. Avisar si se repite la duda.
+- **Ej. 27:** el usuario lo recuerda como "RiskUniform", pero usa `RiskTriang`
+  (mín, más probable, máx). La uniforme está en Ej. 28.
+- **Ej. 28 c1/c2:** el óptimo queda en el mínimo de los competidores (150k / 180k) porque
+  ahí se gana siempre: conviene decir "le gano a todos siempre".
 - En Ej. 23 y 25 hay fórmulas de matriz `{=...}` accidentales; escribir fórmulas normales.

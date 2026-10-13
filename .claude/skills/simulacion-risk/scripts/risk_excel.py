@@ -14,7 +14,8 @@ Ejemplo mínimo:
     lb.conclusion("B30", "a) El VPN promedio es ...")
     lb.guardar("Ejercicio27.xlsx")
 
-Estilos exportados: AZUL, AMARILLO, VERDE, ROJO, BORDE, NEGRITA, GRIS (úsalos en
+Estilos exportados: AMARILLO (resaltar la fila IDEAL), DINERO (formato contable $), y
+AZUL/VERDE/ROJO/BORDE/NEGRITA/GRIS que ahora son neutros (estilo sencillo). Úsalos en
 vez de copiar estilos entre celdas: `ws[x].font = ws[y].font` falla en openpyxl).
 
 Reglas técnicas que resuelve por ti:
@@ -35,14 +36,18 @@ from openpyxl.utils import get_column_letter
 from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
 
-AZUL = PatternFill("solid", fgColor="DDEBF7")
-AMARILLO = PatternFill("solid", fgColor="FFF2CC")
-VERDE = PatternFill("solid", fgColor="E2EFDA")
-ROJO = PatternFill("solid", fgColor="C00000")
-FINO = Side(style="thin", color="999999")
-BORDE = Border(left=FINO, right=FINO, top=FINO, bottom=FINO)
-NEGRITA = Font(bold=True)
-GRIS = Font(italic=True, color="7F7F7F", size=9)
+# Estilo SENCILLO, como los Excel del usuario: sin colores, sin negritas, sin bordes.
+# Lo único con color es la fila ganadora de la tabla de Simtable (amarillo FFFF00)
+# con la palabra "IDEAL" al lado. No lo hagas "profesional": así lo entrega él.
+SIN_RELLENO = PatternFill()
+AZUL = VERDE = ROJO = SIN_RELLENO
+AMARILLO = PatternFill("solid", fgColor="FFFF00")
+BORDE = Border()
+NEGRITA = Font()
+GRIS = Font()
+FINO = Side()
+# Formato contable en dólares que usa el usuario para dinero
+DINERO = '_-[$$-409]* #,##0.00_ ;_-[$$-409]* \\-#,##0.00\\ ;_-[$$-409]* "-"??_ ;_-@_ '
 
 _RISK_FN = re.compile(r"(?<![\w.])(Risk[A-Z]\w*)\(")
 _XLFN = re.compile(r"(?<![\w.])(FORMULATEXT|IFS|SWITCH|CONCAT|TEXTJOIN|MAXIFS|MINIFS)\(")
@@ -101,8 +106,6 @@ class LibroRisk:
         c = self.ws[rango.split(":")[0]]
         c.value = texto
         c.alignment = Alignment(wrap_text=True, vertical="top")
-        c.fill = AZUL
-        c.font = Font(size=10)
 
     def _celda(self, celda: str):
         for rango in self.ws.merged_cells.ranges:
@@ -130,9 +133,6 @@ class LibroRisk:
         c.value = a_excel(formula)
         if formato:
             c.number_format = formato
-        if "RiskOutput" in formula:
-            c.fill = AMARILLO
-            c.font = NEGRITA
         if mostrar_formula or celda_texto:
             destino = celda_texto or desplazar(celda, filas=-1)
             t = self._celda(destino)
@@ -170,10 +170,10 @@ class LibroRisk:
             r = fila + k
             self.f(f"{col}{r}", plantilla.format(r=r, p=r - 1), formato=formato)
 
-    def media(self, celda: str, valor, etiqueta="Mean", formato='"$"#,##0.00'):
+    def media(self, celda: str, valor, etiqueta="Mean", formato=DINERO):
         """Como los ejercicios: etiqueta 'Mean' y el valor pegado a la derecha."""
         self.v(celda, etiqueta, negrita=True)
-        self.v(desplazar(celda, cols=1), valor, relleno=AMARILLO, formato=formato)
+        self.v(desplazar(celda, cols=1), valor, formato=formato)
 
     def estadisticas(self, celda: str, r: dict, formato='#,##0.00', con_percentiles=True,
                      salida: str | None = None,
@@ -190,8 +190,7 @@ class LibroRisk:
                  "Skewness", "Kurtosis", "Values", "Errors", "Filtered", "Left X",
                  "Left P", "Right X", "Right P", "Dif. X", "Dif. P"]
         self.v(celda, "Statistics", negrita=True)
-        self.v(desplazar(celda, cols=1), r.get("Nombre", ""), negrita=True,
-               relleno=ROJO).font = Font(bold=True, color="FFFFFF")
+        self.v(desplazar(celda, cols=1), r.get("Nombre", ""))
         fila = 1
         for k in orden:
             et = "  90% CI" if k == "90% CI" else k
@@ -223,7 +222,7 @@ class LibroRisk:
 
     def tabla_simtable(self, esquina: str, valores: Sequence, encabezado_x: str,
                        encabezado_y: str, resultados=None, paso: float | None = None,
-                       formato_y='"$"#,##0.00', salida: str | None = None,
+                       formato_y=DINERO, salida: str | None = None,
                        resaltar_mejor: str | None = "max"):
         """Tabla 'Posibles X | Promedio Y' que alimenta RiskSimtable (Ej. 7, 11, 24).
         - `paso`: la columna X se escribe como =celda_anterior+paso.
@@ -259,6 +258,7 @@ class LibroRisk:
             k = (max if resaltar_mejor == "max" else min)(range(len(vals)), key=lambda i: vals[i])
             for j in range(1 + len(cols)):
                 self.resaltar(desplazar(primera, filas=k, cols=j))
+            self.v(desplazar(primera, filas=k, cols=1 + len(cols) + (1 if salida else 0)), "IDEAL")
         ultima = desplazar(primera, filas=len(valores) - 1)
         return f"{primera}:{ultima}"
 
@@ -272,7 +272,6 @@ class LibroRisk:
 
     def resaltar(self, celda: str, relleno=AMARILLO):
         self.ws[celda].fill = relleno
-        self.ws[celda].font = NEGRITA
 
     def conclusion(self, celda: str, texto: str, ancho_cols=8, alto_filas=4):
         """Conclusión en texto (equivale al cuadro de texto 'A) La capacidad...').
@@ -282,8 +281,6 @@ class LibroRisk:
         c = self.ws[celda]
         c.value = a_excel(texto) if texto.startswith("=") else texto
         c.alignment = Alignment(wrap_text=True, vertical="top")
-        c.fill = AMARILLO
-        c.font = NEGRITA
 
     def anchos(self, ancho=14, especiales: dict | None = None):
         for i in range(1, self.ws.max_column + 1):

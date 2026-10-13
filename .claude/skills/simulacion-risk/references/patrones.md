@@ -7,7 +7,7 @@ suele combinar 2-3 patrones (p. ej. Ej. 24 = flujos encadenados + RiskSimtable).
 Índice: P1 Bernoulli/IF · P2 Discreta empírica · P3 RiskSimtable (decisión óptima;
 P3b inciso b con el óptimo fijo; P3c vendedor de periódicos) ·
 P4 Flujos encadenados y VPN · P5 Decisión/abandono por periodo · P6 Markov ·
-P7 Proceso acumulativo (capital) · Funciones @RISK · Ajustes de simulación
+P7 Proceso acumulativo (capital) · P8 Licitaciones · Funciones @RISK · Ajustes de simulación
 
 ---
 
@@ -140,6 +140,24 @@ Comprobación analítica opcional (absorbente): N = (I − Q)⁻¹, años espera
 *Ej. 11.* Filas = semanas: `Capital inicial (=capital final anterior) | Inversión
 =C*%$ | Aleatorio | Suceso =Inversión*múltiplo(IF anidado) | Capital final =C-D+F`.
 Salida en la última fila. Si hay que elegir el %, combínalo con P3.
+
+## P8. Licitaciones (gana la oferta más baja)
+*Ej. 27, Ej. 28.* Una fila: `Experimento | Mi costo | Mi oferta | Oferta competidor 1..n | Mi Ganancia`.
+```
+Mi oferta      =RiskSimtable(C19:C33)                 (tabla Posibles Ofertas debajo)
+Competidor i   =RiskUniform(100000,300000)  /  =RiskTriang(55000,80000,150000)
+Mi Ganancia    =RiskOutput()+IF(MIN(D16:H16)=D16,D16-C16,0)
+No licita (p)  =IF(RAND()<1-p,RiskUniform(a,b),"no Licita")   ← licita con prob 1-p
+               y la ganancia con MIN(D100,E100,F100,G100,H100) (MIN ignora el texto)
+```
+- Variantes del mismo ejercicio (más competidores, otra distribución, no licitar) =
+  **bloques separados uno debajo de otro**, cada uno con su etiqueta, su Simtable apuntando
+  a su propia tabla y su `RiskOutput("nombre")`. Simulaciones = número de ofertas.
+- Conclusiones típicas: más competidores → ofrecer menos y ganar menos; menos
+  variabilidad o menos participantes → ofrecer más y ganar más.
+Python: `comp = rng.uniform(a,b,(n,k))`; `np.where(oferta <= comp.min(1), oferta-costo, 0)`;
+no licita: `np.where(rng.random((n,k)) < 1-p, comp, np.inf)`. Plantilla: `scripts/ejemplo_licitacion.py`.
+Validación teórica (uniformes): E[ganancia] = (x−c)·((b−x)/(b−a))^k.
 
 ---
 

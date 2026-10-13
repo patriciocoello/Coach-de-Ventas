@@ -13,9 +13,19 @@ VPN (23), capacidad de planta (24), cadenas de Markov (25, 26), licitaciones (27
   mejor valor = `RiskSimtable` + Simulations = cantidad de valores; `RiskOutput()+` en la
   celda resultado; `NPV` descuenta desde el primer flujo.
 
-## Ej. 16 – Poisson (sin archivo del usuario todavía)
-Referencia general: Análisis de datos > Poisson con Lambda = media, o en @RISK
-`=RiskPoisson(λ)`. Cuando el usuario mande su archivo, reemplaza esta sección.
+## Ej. 16 – Camiones con llegadas Poisson (Análisis de datos, 300 exp.)
+| Columna | Fórmula |
+|---|---|
+| Llegadas | Análisis de datos Poisson λ = 2 (b: λ = 3) |
+| Peso | `=RANDBETWEEN(35;40)*100` |
+| Velocidad | Análisis de datos Discreta `$N$4:$O$6` o `=INDEX($N$4:$N$6;MATCH(RAND();$P$4:$P$6;1))` |
+| Tiempo por camión | `=D20/E20` |
+| Tiempo total | `=IF(C20=0;0;IF(C20=1;F20;IF(C20=2;F20+I20;...)))` (suma los primeros C20 camiones) |
+| Costo 1 equipo | `=IF(Y20>$R$10;"Infactible";IF(Y20<=$N$10;$N$10*$N$14;$N$10*$N$14+(Y20-$N$10)*$N$14*$N$15))` |
+| Costo R11 equipos | `=IF(Y20>$R$12;"Infactible";IF(Y20/$R$11<=$N$10;$R$11*$N$10*$N$14;$R$11*($N$10*$N$14+(Y20/$R$11-$N$10)*$N$14*$N$15)))` |
+| Resumen | `=MAX(C20:C319)` · `=AVERAGE(Z20:Z319)` · `=COUNTIF(Z20:Z319;"infactible")` · `=Z322/300` |
+a) P(2): 1 equipo $933 (8% infactible) vs 2 equipos $1,321 → 2 equipos.
+b) P(3): 1 equipo $1,142 (26% infactible) vs 2 equipos $1,670 (0%) → 2 equipos, obligatorio.
 
 ## Ej. 17 – Efectividad de un plan de muestreo (Análisis de datos, 300 exp.)
 | Columna | Fórmula |

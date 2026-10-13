@@ -1,12 +1,12 @@
 ---
 name: simulacion-risk
-description: Resuelve ejercicios de simulación Monte Carlo en Excel igual que el usuario resolvió los Ej. 17-28, con @RISK (RiskUniform, RiskNormal, RiskTriang, RiskDiscrete, RiskSimtable, RiskOutput) o con Análisis de datos (Generación de números aleatorios). Temas, control de calidad y planes de muestreo, penales/binomial, Poisson, cadenas de Markov, VPN con flujos aleatorios, opción de abandono, capacidad de planta, licitaciones, elegir el valor óptimo. Genera el .xlsx en su formato sencillo, calcula las respuestas con una réplica en Python y responde cada inciso a), b), c) con fórmulas, resultados y conclusión. Úsalo siempre que el usuario comparta un ejercicio de simulación, hable de experimentos, iteraciones, probabilidades de transición, VPN aleatorio, licitaciones, muestreo de lotes, o mencione @RISK, Palisade, Monte Carlo o "Ej. NN" de la clase de simulación, aunque no pida un Excel.
+description: Resuelve ejercicios de simulación Monte Carlo en Excel igual que el usuario resolvió los Ej. 16-28, con @RISK (RiskUniform, RiskNormal, RiskTriang, RiskDiscrete, RiskSimtable, RiskOutput) o con Análisis de datos (Generación de números aleatorios). Temas, llegadas Poisson y equipos de descarga, control de calidad y planes de muestreo, penales/binomial, cadenas de Markov, VPN con flujos aleatorios, opción de abandono, capacidad de planta, licitaciones, elegir el valor óptimo. Genera el .xlsx en su formato sencillo, calcula las respuestas con una réplica en Python y responde cada inciso a), b), c) con fórmulas, resultados y conclusión. Úsalo siempre que el usuario comparta un ejercicio de simulación, hable de experimentos, iteraciones, probabilidades de transición, VPN aleatorio, licitaciones, muestreo de lotes, o mencione @RISK, Palisade, Monte Carlo o "Ej. NN" de la clase de simulación, aunque no pida un Excel.
 ---
 
 # Simulación con @RISK al estilo del usuario
 
 El usuario resuelve ejercicios de un curso de simulación en Excel con el complemento
-@RISK. Ya resolvió los Ej. 17-19 (con Análisis de datos de Excel) y 21-28 (con @RISK) y quiere que los nuevos se resuelvan **igual**: misma
+@RISK. Ya resolvió los Ej. 16-19 (con Análisis de datos de Excel) y 21-28 (con @RISK) y quiere que los nuevos se resuelvan **igual**: misma
 estructura de hoja, mismas fórmulas, mismos tipos de salida y conclusiones cortas por
 inciso. Tu trabajo es entregar dos cosas:
 
@@ -45,7 +45,7 @@ Scripts en `scripts/` (dentro del directorio de este skill):
 - Ej. 21 en adelante, o si mencionan @RISK → **@RISK** (la hoja = un experimento; N = Iterations).
 - Ej. 20 o menor, o si dicen "análisis de datos" / "generación de números aleatorios" →
   **Análisis de datos de Excel, sin @RISK** (patrón P0: una fila por experimento, valores
-  aleatorios fijos, `COUNTIF`/`AVERAGE` al final; ejemplos Ej. 17, 18, 19). Plantilla
+  aleatorios fijos, `COUNTIF`/`AVERAGE` al final; ejemplos Ej. 16, 17, 18, 19). Plantilla
   `scripts/ejemplo_toolpak_muestreo.py`.
 - Si no está claro, usa @RISK y menciona en una línea cómo sería con Análisis de datos.
 

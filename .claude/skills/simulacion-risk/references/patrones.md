@@ -31,6 +31,15 @@ encima; también explica cómo regenerarlos con la herramienta. Plantilla:
 `scripts/ejemplo_toolpak_muestreo.py`. Si quieren fórmulas vivas sin ToolPak:
 `=BINOM.INV(n;p;RAND())`, `=NORM.INV(RAND();m;s)`.
 
+**Cantidad variable de elementos por experimento (Ej. 16):** la columna de llegadas (Poisson)
+dice cuántos camiones/clientes hay; se reservan bloques de columnas por elemento (Camión 1..k,
+con k ≈ máximo observado) y el total suma sólo los primeros n con un IF anidado
+(`IF(C20=0;0;IF(C20=1;F20;IF(C20=2;F20+I20;...)))`). Uniforme discreta con pasos:
+`=RANDBETWEEN(35;40)*100`. Discreta con fórmula: `=INDEX(valores;MATCH(RAND();acum_inferior;1))`.
+Costo con horas extra: `=IF(h<=8;8*costo_h;8*costo_h+(h-8)*costo_h*1.5)`; con e equipos se
+reparte `h/e`; si excede la capacidad → `"Infactible"` y se cuenta con `COUNTIF`. Para decidir
+cuántos equipos, compara costo promedio **y** % de infactibles (AVERAGE ignora el texto).
+
 ## La idea central
 (Con @RISK.) La hoja modela **un solo experimento**. @RISK la recalcula N veces (iteraciones =
 "experimentos" del enunciado) y guarda cada celda marcada con `RiskOutput()`.

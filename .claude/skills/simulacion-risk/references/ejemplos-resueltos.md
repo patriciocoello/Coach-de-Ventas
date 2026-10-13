@@ -1,11 +1,11 @@
 # Ejercicios resueltos por el usuario con @RISK (referencia de estilo)
 
-Estos son los ejercicios 17-19 (con Análisis de datos, sin @RISK) y 21-28 (con @RISK) tal como el usuario los resolvió en Excel + @RISK.
+Estos son los ejercicios 16-19 (con Análisis de datos, sin @RISK) y 21-28 (con @RISK) tal como el usuario los resolvió en Excel + @RISK.
 Son la "verdad" de cómo se espera que se vea una respuesta. Las fórmulas se
 muestran como aparecen en su Excel en español (separador `;`, decimal `.`).
 
 Contenido:
-0. Ej. 17, 18, 19 – SIN @RISK: Análisis de datos > Generación de números aleatorios
+0. Ej. 16, 17, 18, 19 – SIN @RISK: Análisis de datos > Generación de números aleatorios
 1. Ej. 21/22 – Demostración @RISK con Ej. 2, 7 y 11 (Bernoulli, discreta, RiskSimtable)
 2. Ej. 23 – Flujos aleatorios encadenados, VPN y opción de abandono
 3. Ej. 24 – Capacidad óptima de planta (RiskSimtable + VPN, dos escenarios de demanda)
@@ -17,7 +17,7 @@ Contenido:
 
 ---
 
-## 0. Ej. 17-19 – Análisis de datos (ToolPak), una fila por experimento
+## 0. Ej. 16-19 – Análisis de datos (ToolPak), una fila por experimento
 
 Antes de @RISK el usuario resolvía con **Datos > Análisis de datos > Generación de números
 aleatorios**. Diferencias clave con @RISK:
@@ -28,6 +28,38 @@ aleatorios**. Diferencias clave con @RISK:
   D = discreta con rango valor/probabilidad).
 - Las demás columnas son fórmulas normales (`IF`, sumas) y encima también va su texto.
 - Al final: `COUNTIF`, `AVERAGE`, porcentajes `=celda/N`, y una conclusión en cuadro de texto.
+
+### Ej. 16 – Descarga de camiones, llegadas Poisson (Análisis de datos, 300 exp.)
+Llegan camiones Poisson(2) al día; peso entre 3,500 y 4,000 kg en pasos de 100 (equiprobable);
+velocidad de descarga por tipo de carga A 1000 kg/h (0.38), B 700 (0.42), C 400 (0.2). Equipo =
+chofer $32/h + 2 obreros $20/h = $72/h; jornada 8 h; hora extra +50%. Se descarga todo al día
+siguiente. ¿Cuántos equipos contratar para minimizar el costo? b) llegadas ~P(3).
+- Tablas arriba: `Tipo de carga | KG./hr | Probabilidad | Acum. inferior` (N4:P6, acumulada
+  inferior 0, 0.38, 0.80) y `Parámetros de pago` (jornada N10 = 8, costo equipo N14 = 72,
+  recargo N15 = 1.5) + `Extensión: varios equipos` (máx h/día por equipo R10 = 24, N° de
+  equipos R11 = 2, capacidad total R12 = 48).
+- Una fila por experimento: `Experimentos | Llegadas de camiones | [Peso | Velocidad | Tiempo] ×
+  Camión 1..7 | Tiempo Total (h) | Costo total ($) | Costo Contratando R11 equipos`
+  - Llegadas: Análisis de datos **Poisson** λ = 2 (b: λ = 3), valores.
+  - Peso: `=RANDBETWEEN(35;40)*100` (uniforme discreta en pasos de 100).
+  - Velocidad: Análisis de datos **Discreta** `$N$4:$O$6`, o con fórmula
+    `=INDEX($N$4:$N$6;MATCH(RAND();$P$4:$P$6;1))` (con la acumulada inferior).
+  - Tiempo por camión: `=D20/E20`.
+  - Tiempo total: IF anidado que suma sólo los primeros C20 camiones:
+    `=IF(C20=0;0;IF(C20=1;F20;IF(C20=2;F20+I20;...;F20+I20+L20+O20+R20+U20+X20)))`.
+  - Costo 1 equipo: `=IF(Y20>$R$10;"Infactible";IF(Y20<=$N$10;$N$10*$N$14;$N$10*$N$14+(Y20-$N$10)*$N$14*$N$15))`
+  - Costo con R11 equipos: `=IF(Y20>$R$12;"Infactible";IF(Y20/$R$11<=$N$10;$R$11*$N$10*$N$14;$R$11*($N$10*$N$14+(Y20/$R$11-$N$10)*$N$14*$N$15)))`
+  - Resumen: `Max =MAX(C20:C319)`, `Promedio =AVERAGE(...)` de tiempo y costos,
+    `Infactibles =COUNTIF(Z20:Z319;"infactible")`, `% =Z322/300`.
+- Resultados a) P(2): máx 7 camiones, tiempo prom 10.91 h, 1 equipo $933.26 (25 infactibles, 8%),
+  2 equipos $1,320.82 (1 infactible, 0.3%). b) P(3): máx 8 (se agregó Camión 8), tiempo 17.11 h,
+  1 equipo $1,141.99 (79 infactibles, 26%), 2 equipos $1,670.18 (0%).
+- Conclusión: a) 2 equipos; uno es más barato en promedio pero varios días no alcanza en 24 h.
+  b) 2 equipos, aquí ya no es opcional: con más llegadas un solo equipo es infactible muy seguido.
+- Cuidado: `AVERAGE` ignora el texto "Infactible", así que el promedio de 1 equipo excluye los días
+  más caros (con todos los días sería ≈ $1,108 en a y ≈ $1,596 en b). Las columnas de camiones
+  topan en 7/8: si llegan más, no se suman (P ≈ 0.1%/0.4%, despreciable). En @RISK sería
+  `RiskPoisson(2)`, `RiskIntUniform(35;40)*100`, `RiskDiscrete({1000;700;400};{0.38;0.42;0.2})`.
 
 ### Ej. 17 – Efectividad de un plan de muestreo (300 experimentos)
 Lotes de 150; se revisan 5; si hay 2 o más defectuosos se rechaza. Lote bueno 0.7 / malo 0.3.
